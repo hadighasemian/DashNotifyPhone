@@ -39,19 +39,26 @@ const SidebarContent: MenuItem[] = [
             name: "Devices",
             icon: "solar:smartphone-line-duotone",
             id: uniqueId(),
-            url: "/Devices",
+            children: [
+              {
+                name: "All devices",
+                icon: "solar:smartphone-2-line-duotone",
+                id: uniqueId(),
+                url: "/Devices",
+              },
+              {
+                name: "Notifications",
+                icon: "solar:bell-line-duotone",
+                id: uniqueId(),
+                url: "/Devices/Notifications",
+              },
+            ],
           },
           {
             name: "Map",
             icon: "solar:map-point-line-duotone",
             id: uniqueId(),
             url: "/Map",
-          },
-          {
-            name: "Notifications",
-            icon: "solar:bell-line-duotone",
-            id: uniqueId(),
-            url: "/Notifications",
           },
           {
             name: "Errors",

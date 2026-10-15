@@ -63,6 +63,7 @@ export type MapDevice = {
 export type NotificationRow = {
   id: number;
   device_id: number;
+  device_notif_key?: string | null;
   package_name: string;
   app_label?: string | null;
   title?: string | null;
@@ -71,6 +72,7 @@ export type NotificationRow = {
   posted_at?: string;
   received_at?: string;
   status?: "received" | "processed" | string;
+  extras?: Record<string, unknown> | unknown[] | string | null;
   device?: Partial<Device>;
 };
 

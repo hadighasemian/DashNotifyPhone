@@ -7,7 +7,21 @@ export function unwrapList<T = any>(res: any): { items: T[]; meta: any } {
       : Array.isArray(body?.data?.data)
         ? body.data.data
         : [];
-  const meta = body?.meta || body?.data?.meta || {};
+  const raw = body?.meta || body?.data?.meta || {};
+  const num = (v: any, fallback = 1) => {
+    if (Array.isArray(v)) return Number(v[0]) || fallback;
+    const n = Number(v);
+    return Number.isFinite(n) ? n : fallback;
+  };
+  const meta = {
+    ...raw,
+    current_page: num(raw.current_page, 1),
+    last_page: num(raw.last_page, 1),
+    per_page: num(raw.per_page, 15),
+    total: num(raw.total, items.length),
+    from: raw.from != null ? num(raw.from, 0) : undefined,
+    to: raw.to != null ? num(raw.to, 0) : undefined,
+  };
   return { items, meta };
 }
 

@@ -4,6 +4,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Badge, Card, Spinner, Table } from "flowbite-react";
 import BreadcrumbComp from "@/app/(DashboardLayout)/layout/shared/breadcrumb/BreadcrumbComp";
+import TitleIconCard from "@/app/components/shared/TitleIconCard";
 import CreateAxiosInstanceServer from "@/resources/Net/CreateAxiosInstanceServer";
 import authModel from "@/resources/models/Auth/AuthModel";
 import URLs from "@/resources/Net/URLs";
@@ -14,6 +15,7 @@ import {
   isOnline,
 } from "@/app/components/phonenotify/apiHelpers";
 import type { Device, DeviceState } from "@/resources/models/PhoneNotify/types";
+import NotificationsTable from "@/app/components/phonenotify/NotificationsTable";
 
 export default function DeviceDetailPage() {
   const params = useParams();
@@ -30,7 +32,9 @@ export default function DeviceDetailPage() {
     setLoading(true);
     Promise.all([
       axios.get(`${URLs.admin.devices}/${id}`),
-      axios.get(`${URLs.admin.devices}/${id}/states`, { params: { per_page: 50 } }).catch(() => null),
+      axios
+        .get(`${URLs.admin.devices}/${id}/states`, { params: { per_page: 50 } })
+        .catch(() => null),
     ])
       .then(([devRes, stRes]) => {
         setDevice(unwrapOne<Device>(devRes));
@@ -78,7 +82,9 @@ export default function DeviceDetailPage() {
         <Card className="xl:col-span-2 shadow-md">
           <div className="flex items-start justify-between mb-4">
             <div>
-              <h3 className="text-xl font-bold">{device.label || device.model || "Device"}</h3>
+              <h3 className="text-xl font-bold">
+                {device.label || device.model || "Device"}
+              </h3>
               <p className="text-sm text-darklink font-mono">{device.device_uuid}</p>
             </div>
             <Badge color={online ? "success" : "failure"} size="lg">
@@ -141,6 +147,13 @@ export default function DeviceDetailPage() {
           </ul>
         </Card>
       </div>
+
+      <div className="mt-6">
+        <TitleIconCard title="Notifications from this device">
+          <NotificationsTable deviceId={id} perPage={15} />
+        </TitleIconCard>
+      </div>
+
       <Card className="mt-6 shadow-md">
         <h5 className="font-semibold mb-3">Location / state history</h5>
         <div className="overflow-x-auto">
