@@ -27,7 +27,10 @@ export function unwrapList<T = any>(res: any): { items: T[]; meta: any } {
 
 export function unwrapOne<T = any>(res: any): T {
   const body = res?.data ?? res;
-  if (body?.data !== undefined && !Array.isArray(body.data)) return body.data as T;
+  // Prefer nested data when present (object OR array)
+  if (body && typeof body === "object" && "data" in body && body.data !== undefined) {
+    return body.data as T;
+  }
   return body as T;
 }
 

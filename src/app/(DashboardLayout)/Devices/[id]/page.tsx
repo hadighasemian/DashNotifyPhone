@@ -16,6 +16,16 @@ import {
 } from "@/app/components/phonenotify/apiHelpers";
 import type { Device, DeviceState } from "@/resources/models/PhoneNotify/types";
 import NotificationsTable from "@/app/components/phonenotify/NotificationsTable";
+import dynamic from "next/dynamic";
+
+const DevicesMap = dynamic(() => import("@/app/components/phonenotify/DevicesMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="flex justify-center py-16">
+      <Spinner />
+    </div>
+  ),
+});
 
 export default function DeviceDetailPage() {
   const params = useParams();
@@ -33,7 +43,7 @@ export default function DeviceDetailPage() {
     Promise.all([
       axios.get(`${URLs.admin.devices}/${id}`),
       axios
-        .get(`${URLs.admin.devices}/${id}/states`, { params: { per_page: 50 } })
+        .get(`${URLs.admin.devices}/${id}/states`, { params: { per_page: 200 } })
         .catch(() => null),
     ])
       .then(([devRes, stRes]) => {
@@ -147,6 +157,58 @@ export default function DeviceDetailPage() {
           </ul>
         </Card>
       </div>
+
+
+      <Card className="mt-6 shadow-md">
+        <div className="flex items-center justify-between mb-3">
+          <h5 className="font-semibold">Location & route track</h5>
+          <span className="text-xs text-darklink">
+            {states.filter((s) => s.latitude != null && s.longitude != null).length} points
+            · red = latest
+          </span>
+        </div>
+        {states.some((s) => s.latitude != null && s.longitude != null) ||
+        (device.latest_state && device.latest_state.latitude != null) ? (
+          <DevicesMap
+            devices={(() => {
+              const newest =
+                [...states]
+                  .filter((x) => x.latitude != null && x.longitude != null)
+                  .sort(
+                    (a, b) =>
+                      new Date(b.reported_at || 0).getTime() -
+                      new Date(a.reported_at || 0).getTime()
+                  )[0] || device.latest_state;
+              if (newest?.latitude == null || newest?.longitude == null) return [];
+              return [
+                {
+                  id: device.id,
+                  label: device.label,
+                  brand: device.brand,
+                  model: device.model,
+                  latitude: Number(newest.latitude),
+                  longitude: Number(newest.longitude),
+                  last_seen_at: device.last_seen_at || newest.reported_at,
+                  is_online: device.is_online,
+                },
+              ];
+            })()}
+            history={
+              states.filter((s) => s.latitude != null).length
+                ? states
+                : device.latest_state
+                  ? [device.latest_state]
+                  : []
+            }
+            showTrack
+            height="420px"
+          />
+        ) : (
+          <p className="text-sm text-darklink py-8 text-center">
+            No location history for this device yet
+          </p>
+        )}
+      </Card>
 
       <div className="mt-6">
         <TitleIconCard title="Notifications from this device">

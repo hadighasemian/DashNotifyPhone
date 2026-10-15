@@ -35,16 +35,16 @@ export default function MapPage() {
     setLoading(true);
     Promise.all([
       axios.get(URLs.admin.devicesMap),
-      axios.get(URLs.admin.devices, { params: { per_page: 100 } }),
+      axios.get(URLs.admin.devices, { params: { per_page: 200 } }),
     ])
       .then(([mapRes, listRes]) => {
         const mapBody = unwrapOne<any>(mapRes);
         const mapItems = Array.isArray(mapBody)
-          ? mapBody
+          ? (mapBody as MapDevice[])
           : Array.isArray(mapBody?.devices)
             ? mapBody.devices
             : unwrapList<MapDevice>(mapRes).items;
-        setDevices(mapItems);
+        setDevices(mapItems.filter((d: MapDevice) => d.latitude != null && d.longitude != null));
         setDeviceList(unwrapList<Device>(listRes).items);
       })
       .catch((e) => Notify(e?.message || "Failed to load map", "danger"))
@@ -58,7 +58,7 @@ export default function MapPage() {
     const axios = CreateAxiosInstanceServer({ login });
     try {
       const res = await axios.get(`${URLs.admin.devices}/${id}/states`, {
-        params: { per_page: 100 },
+        params: { per_page: 200 },
       });
       setHistory(unwrapList<DeviceState>(res).items);
     } catch (e: any) {
@@ -93,7 +93,12 @@ export default function MapPage() {
             <Spinner size="xl" />
           </div>
         ) : (
-          <DevicesMap devices={selectedId ? [] : devices} history={history} />
+          <DevicesMap
+            devices={selectedId ? [] : devices}
+            history={history}
+            showTrack={!!selectedId}
+            height="560px"
+          />
         )}
       </Card>
     </>
